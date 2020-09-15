@@ -1,5 +1,8 @@
 package com.cc;
 
+import org.apache.poi.hssf.eventusermodel.HSSFUserException;
+import org.apache.poi.hssf.usermodel.HSSFCell;
+import org.apache.poi.hssf.usermodel.HSSFDateUtil;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
@@ -12,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Date;
 
 public class ExcelReadTest {
 
@@ -63,6 +67,9 @@ public class ExcelReadTest {
         fileInputStream.close();
     }
 
+    /**
+     * 工具类
+     */
     @Test
     public void testCellType() throws IOException{
         //获取文件流
@@ -100,8 +107,43 @@ public class ExcelReadTest {
 
                     Cell cell = rowData.getCell(cellNum);
                     //匹配列的数据类型
+                    if (cell != null) {
+                        int cellType = cell.getCellType();
+                        String cellValue = "";
+
+                        switch (cellType) {
+                            case HSSFCell.CELL_TYPE_STRING://字符串
+                                System.out.println("【String】");
+                                cellValue = cell.getStringCellValue();
+                                break;
+                            case HSSFCell.CELL_TYPE_BOOLEAN://bool
+                                System.out.println("【BOOLEAN】");
+                                cellValue = String.valueOf(cell.getBooleanCellValue());
+                                break;
+                            case HSSFCell.CELL_TYPE_BLANK://null
+                                System.out.println("【BLANK】");
+                                break;
+                            case HSSFCell.CELL_TYPE_NUMERIC://数字（日期，普通数字）
+                                System.out.println("【NUMERIC】");
+                                if (HSSFDateUtil.isCellDateFormatted(cell)) { //日期
+                                    System.out.println("【日期】");
+                                    Date date = cell.getDateCellValue();
+                                    cellValue = new DateTime(date).toString("yyyy-MM-dd");
+                                } else {
+                                    System.out.println("【转换为字符串输出】");
+                                    cell.setCellType(HSSFCell.CELL_TYPE_STRING);
+                                    cellValue = cell.toString();
+                                }
+                                break;
+                            case HSSFCell.CELL_TYPE_ERROR://bool
+                                System.out.println("【数据类型错误】");
+                                break;
+                        }
+                        System.out.println(cellValue);
+                    }
                 }
             }
         }
+        fileInputStream.close();
     }
 }
